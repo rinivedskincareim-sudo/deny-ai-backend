@@ -1,0 +1,124 @@
+deny-ai-backend/
+¦
++-- server.js
++-- package.json
++-- .env
++-- models/
+    +-- User.jsconst express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+// ======================
+// ??? MONGO CONNECT
+// ======================
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB Connected ??"))
+  .catch(err => console.log(err));
+
+// ======================
+// ?? USER MODEL
+// ======================
+const UserSchema = new mongoose.Schema({
+  email: String,
+  credits: { type: Number, default: 3 }
+});
+
+const User = mongoose.model("User", UserSchema);
+
+// ======================
+// ?? LOGIN / REGISTER
+// ======================
+app.post("/login", async (req, res) => {
+  const { email } = req.body;
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    user = await User.create({ email, credits: 3 });
+  }
+
+  res.json(user);
+});
+
+// ======================
+// ?? GENERATE AI RESULT
+// ======================
+app.post("/generate", async (req, res) => {
+  const { email, usecase } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.json({ error: "User not found" });
+  }
+
+  if (user.credits <= 0) {
+    return res.json({ error: "No credits left" });
+  }
+
+  user.credits -= 1;
+  await user.save();
+
+  const result = `
+?? DENY AI BUSINESS KIT
+
+?? AMAZON:
+Title: Best ${usecase} Product
+Price: ?499 - ?999
+
+?? FLIPKART:
+Description: High quality ${usecase}
+
+?? MEESHO:
+Title: Affordable ${usecase}
+Keywords: trending, best, cheap
+
+?? SHIPPING:
+Low cost delivery
+
+?? PROFIT:
+High margin business
+
+?? TREND:
+High demand niche
+`;
+
+  res.json({
+    result,
+    creditsLeft: user.credits
+  });
+});
+
+// ======================
+// ?? SERVER START
+// ======================
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log("DENY AI RUNNING ??");
+});{
+  "name": "deny-ai-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0"
+  }
+}MONGO_URL=your_mongodb_connection_string_hereconst mongoose = require("mongoose");
+
+const UserSchema = new mongoose.Schema({
+  email: String,
+  credits: { type: Number, default: 3 }
+});
+
+module.exports = mongoose.model("User", UserSchema);npm installnode server.js
